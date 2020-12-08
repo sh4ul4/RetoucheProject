@@ -32,6 +32,7 @@ out
 *.exe
 *.out
 *.app
+RelWithDebInfo
 
 #VS
 .vs
