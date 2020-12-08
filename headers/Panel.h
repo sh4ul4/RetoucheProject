@@ -6,6 +6,7 @@
 #include "Texture.h"
 #include "Input.h"
 #include "Filter.h"
+#include "InputBox.h"
 #include <vector>
 
 class Panel {
@@ -27,6 +28,14 @@ class Panel {
 			Draw::DrawLine(panelPosition + position + size, panelPosition + Point2(position.x, position.y + size.y), col, w.getRenderer());
 			Draw::DrawLine(panelPosition + Point2(position.x, position.y + size.y), panelPosition + position, col, w.getRenderer());
 		}
+		void render(const Point2& panelPosition, const Color& col, const Window& w, const std::string& text)const {
+			Draw::RenderString(panelPosition.x + position.x + 2, panelPosition.y + position.y + 2, 6, text, col, w.getRenderer());
+
+			Draw::DrawLine(panelPosition + position, panelPosition + Point2(position.x + size.x, position.y), col, w.getRenderer());
+			Draw::DrawLine(panelPosition + Point2(position.x + size.x, position.y), panelPosition + position + size, col, w.getRenderer());
+			Draw::DrawLine(panelPosition + position + size, panelPosition + Point2(position.x, position.y + size.y), col, w.getRenderer());
+			Draw::DrawLine(panelPosition + Point2(position.x, position.y + size.y), panelPosition + position, col, w.getRenderer());
+		}
 	};
 	// Panel variables
 	Point2 position;
@@ -35,6 +44,7 @@ class Panel {
 	bool isActive = false;
 	Button moveButton;
 	Button closeButton;
+	Button chooseButton;
 	Texture* texture = nullptr;
 	// style-sheet
 	Point2 texturePosition;
@@ -47,16 +57,19 @@ public:
 		if (size.x < 0 || size.y < 0) { std::cout << "Error: size can't be negative" << std::endl; exit(1); }
 		moveButton = Button({ 0,0 }, 10, 10);
 		closeButton = Button({ size.x - 10,0 }, 10, 10);
+		chooseButton = Button({ 16,0 }, 10, 10);
 	}
 	Panel(const int& x, const int& y, const int& w, const int& h) :position({ x,y }), size({ w,h }) {
 		if (size.x < 0 || size.y < 0) { std::cout << "Error: size can't be negative" << std::endl; exit(1); }
 		moveButton = Button({ 0,0 }, 10, 10);
 		closeButton = Button({ size.x - 10,0 }, 10, 10);
+		chooseButton = Button({ 16,0 }, 10, 10);
 	}
 	Panel(const int& x, const int& y, const int& w, const int& h, Texture* texture) :position({ x,y }), size({ w,h }) {
 		if (size.x < 0 || size.y < 0) { std::cout << "Error: size can't be negative" << std::endl; exit(1); }
 		moveButton = Button({ 0,0 }, 10, 10);
 		closeButton = Button({ size.x - 10,0 }, 10, 10);
+		chooseButton = Button({ 16,0 }, 10, 10);
 		texturePosition = { 1,11 };
 		textureW = w - 1;
 		textureH = h - 11;
@@ -89,6 +102,7 @@ public:
 
 			moveButton.render(position, black, w);
 			closeButton.render(position, black, w);
+			chooseButton.render(position, black, w, "f");
 		}
 		else {
 			Draw::DrawFillRectangle(position, size, gray, w.getRenderer());
@@ -100,6 +114,7 @@ public:
 
 			moveButton.render(position, dark_gray, w);
 			closeButton.render(position, dark_gray, w);
+			chooseButton.render(position, dark_gray, w, "f");
 		}
 		if(texture != nullptr) texture->renderTexture(w.getRenderer(), position + texturePosition, textureW, textureH, 0, 0);
 	}
@@ -111,6 +126,9 @@ public:
 	}
 	bool insideCloseButton(const Point2& p)const {
 		return closeButton.inside(p - position);
+	}
+	bool insideChooseButton(const Point2& p)const {
+		return chooseButton.inside(p - position);
 	}
 	Point2 getRelativePosition(const Point2& p)const {
 		return p - position;
@@ -127,8 +145,8 @@ public:
 	}*/
 	void applyBasicFilter(const Window& w) {
 		if (texture != nullptr) {
-			Filter filter;
-			filter.filter(*texture, w);
+			ContrastFilter filter;
+			filter.filter(*texture, w, 1);
 		}
 	}
 };
@@ -211,6 +229,9 @@ public:
 				if (i == active)active = -1;
 				panels.erase(panels.begin() + i);
 			}
+		}
+		if (event.mouse.rightClick && panels[active].inside({ event.mouse.x,event.mouse.y })) {
+			// open context menu
 		}
 	}
 	void render(const Window& w)const {

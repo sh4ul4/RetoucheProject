@@ -173,7 +173,7 @@ public:
 			}
 		}
 	}
-	bool RenderString(const int& x, const int& y, const int& size, const std::string& string, const Color& color, SDL_Renderer* renderer) // ! in progress !
+	static bool RenderString(const int& x, const int& y, const int& size, const std::string& string, const Color& color, SDL_Renderer* renderer) // ! in progress !
 	{
 		std::vector< AnalogChar> chars_f;
 		for (int i = static_cast<int>(string.size()) - 1; i >= 0; i--)

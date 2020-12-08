@@ -387,6 +387,70 @@ public:
 			}
 		}
 	}
+	char GetChar()
+	{
+		update();
+		if (keyboard.A == 1) { keyboard.A = false; return 'A'; }
+		else if (keyboard.B == 1) { keyboard.B = false; return 'B'; }
+		else if (keyboard.C == 1) { keyboard.C = false; return 'C'; }
+		else if (keyboard.D == 1) { keyboard.D = false; return 'D'; }
+		else if (keyboard.E == 1) { keyboard.E = false; return 'E'; }
+		else if (keyboard.F == 1) { keyboard.F = false; return 'F'; }
+		else if (keyboard.G == 1) { keyboard.G = false; return 'G'; }
+		else if (keyboard.H == 1) { keyboard.H = false; return 'H'; }
+		else if (keyboard.I == 1) { keyboard.I = false; return 'I'; }
+		else if (keyboard.J == 1) { keyboard.J = false; return 'J'; }
+		else if (keyboard.K == 1) { keyboard.K = false; return 'K'; }
+		else if (keyboard.L == 1) { keyboard.L = false; return 'L'; }
+		else if (keyboard.M == 1) { keyboard.M = false; return 'M'; }
+		else if (keyboard.N == 1) { keyboard.N = false; return 'N'; }
+		else if (keyboard.O == 1) { keyboard.O = false; return 'O'; }
+		else if (keyboard.P == 1) { keyboard.P = false; return 'P'; }
+		else if (keyboard.Q == 1) { keyboard.Q = false; return 'Q'; }
+		else if (keyboard.R == 1) { keyboard.R = false; return 'R'; }
+		else if (keyboard.S == 1) { keyboard.S = false; return 'S'; }
+		else if (keyboard.T == 1) { keyboard.T = false; return 'T'; }
+		else if (keyboard.U == 1) { keyboard.U = false; return 'U'; }
+		else if (keyboard.V == 1) { keyboard.V = false; return 'V'; }
+		else if (keyboard.W == 1) { keyboard.W = false; return 'W'; }
+		else if (keyboard.X == 1) { keyboard.X = false; return 'X'; }
+		else if (keyboard.Y == 1) { keyboard.Y = false; return 'Y'; }
+		else if (keyboard.Z == 1) { keyboard.Z = false; return 'Z'; }
+		else if (keyboard.a == 1) { keyboard.a = false; return 'a'; }
+		else if (keyboard.b == 1) { keyboard.b = false; return 'b'; }
+		else if (keyboard.c == 1) { keyboard.c = false; return 'c'; }
+		else if (keyboard.d == 1) { keyboard.d = false; return 'd'; }
+		else if (keyboard.e == 1) { keyboard.e = false; return 'e'; }
+		else if (keyboard.f == 1) { keyboard.f = false; return 'f'; }
+		else if (keyboard.g == 1) { keyboard.g = false; return 'g'; }
+		else if (keyboard.h == 1) { keyboard.h = false; return 'h'; }
+		else if (keyboard.i == 1) { keyboard.i = false; return 'i'; }
+		else if (keyboard.j == 1) { keyboard.j = false; return 'j'; }
+		else if (keyboard.k == 1) { keyboard.k = false; return 'k'; }
+		else if (keyboard.l == 1) { keyboard.l = false; return 'l'; }
+		else if (keyboard.m == 1) { keyboard.m = false; return 'm'; }
+		else if (keyboard.n == 1) { keyboard.n = false; return 'n'; }
+		else if (keyboard.o == 1) { keyboard.o = false; return 'o'; }
+		else if (keyboard.p == 1) { keyboard.p = false; return 'p'; }
+		else if (keyboard.q == 1) { keyboard.q = false; return 'q'; }
+		else if (keyboard.r == 1) { keyboard.r = false; return 'r'; }
+		else if (keyboard.s == 1) { keyboard.s = false; return 's'; }
+		else if (keyboard.t == 1) { keyboard.t = false; return 't'; }
+		else if (keyboard.u == 1) { keyboard.u = false; return 'u'; }
+		else if (keyboard.v == 1) { keyboard.v = false; return 'v'; }
+		else if (keyboard.w == 1) { keyboard.w = false; return 'w'; }
+		else if (keyboard.x == 1) { keyboard.x = false; return 'x'; }
+		else if (keyboard.y == 1) { keyboard.y = false; return 'y'; }
+		else if (keyboard.z == 1) { keyboard.z = false; return 'z'; }
+		else if (keyboard.comma == 1) { keyboard.comma = false; return ','; }
+		else if (keyboard.minus == 1) { keyboard.minus = false; return '-'; }
+		else if (keyboard.quote == 1) { keyboard.quote = false; return '\''; }
+		else if (keyboard.space == 1) { keyboard.space = false; return ' '; }
+		else if (keyboard.delete_ == 1) { keyboard.delete_ = false; return -1; }
+		else if (keyboard.backSpace == 1) { keyboard.backSpace = false; return -1; }
+		else if (keyboard.semicolon == 1) { keyboard.semicolon = false; return ';'; }
+		else { return NULL; }
+	}
 };
 
 #endif // !INPUT_H

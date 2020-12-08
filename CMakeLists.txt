@@ -22,12 +22,12 @@ include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_IMAGE_INCLUDE_DIRS} ${SDL2_TTF_I
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/${CMAKE_BUILD_TYPE})
 
 set(SRCS "src/main.cpp")
-set(HEADERS "headers/Panel" "headers/Draw" "headers/FrameRate" "headers/Input" "headers/library" "headers/Matrix" "headers/Point" "headers/Texture" "headers/Window" "headers/Render" "headers/Shape.h" "headers/Filter.h")
+set(HEADERS "headers/Panel" "headers/Draw" "headers/FrameRate" "headers/Input" "headers/library" "headers/Matrix" "headers/Point" "headers/Texture" "headers/Window" "headers/Render" "headers/Shape.h" "headers/Filter.h" "headers/InputBox")
 
 
 
 # Ajoutez une source à l'exécutable de ce projet.
-add_executable(ImageRetouche  ${SRCS} ${HEADERS} "headers/Panel" "headers/Draw" "headers/FrameRate" "headers/Input" "headers/library" "headers/Matrix" "headers/Point" "headers/Texture" "headers/Window" "headers/Render" "headers/Shape.h" "headers/Filter.h")
+add_executable(ImageRetouche  ${SRCS} ${HEADERS} "headers/Panel" "headers/Draw" "headers/FrameRate" "headers/Input" "headers/library" "headers/Matrix" "headers/Point" "headers/Texture" "headers/Window" "headers/Render" "headers/Shape.h" "headers/Filter.h" "headers/InputBox")
 
 target_include_directories(ImageRetouche PRIVATE headers)
 
