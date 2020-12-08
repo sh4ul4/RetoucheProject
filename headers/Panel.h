@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include "Point.h"
@@ -33,6 +33,7 @@ class Panel {
 	bool isActive = false;
 	Button moveButton;
 	Button closeButton;
+	Texture texture;
 	// style-sheet
 	int buttonsize = 10;
 public:
@@ -99,6 +100,16 @@ public:
 	Point2 getRelativePosition(const Point2& p)const {
 		return p - position;
 	}
+	float distanceToPanel(const Panel& p)const {
+		const Point2 center(position + size / 2);
+		const Point2 pcenter(p.position + p.size / 2);
+		return Max(abs(center.x - pcenter.x) - (size.x + p.size.x) / 2, abs(center.y - pcenter.y) - (size.y + p.size.y) / 2);
+	}
+	bool closeHorizontal(const Panel& p)const {
+		const Point2 center(position + size / 2);
+		const Point2 pcenter(p.position + p.size / 2);
+		return (abs(center.x - pcenter.x) - (size.x + p.size.x) / 2) < (abs(center.y - pcenter.y) - (size.y + p.size.y) / 2);
+	}
 };
 
 class PanelManager {
@@ -147,6 +158,25 @@ public:
 					movementStart = panels[active].getRelativePosition({ event.mouse.x,event.mouse.y });
 				}
 			}
+			/*else if (movingPanel == true) {
+				int distance = panels[active].distanceToPanel(panels[i]);
+				if (abs(distance) < 10) {
+					if (panels[active].closeHorizontal(panels[i])) {
+						if (panels[active].y() < panels[i].y()) {
+							panels[active].moveBy(0, abs(distance));
+							movementStart.y+= abs(distance);
+						}
+						else {
+							panels[active].moveBy(0, -abs(distance));
+							movementStart.y+= -abs(distance);
+						}
+					}
+					else {
+						//panels[active].moveBy(1, 0);
+						//movementStart.x++;
+					}
+				}
+			}*/
 		}
 		for (int i = panels.size() - 1; i >= 0; i--) {
 			if (event.mouse.leftClick && movingPanel == false && event.mouse.moving == false && panels[i].insideCloseButton({ event.mouse.x,event.mouse.y })) {
