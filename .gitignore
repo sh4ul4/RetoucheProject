@@ -27,6 +27,14 @@
 *.lib
 
 # Executables
+Debug
+out
 *.exe
 *.out
 *.app
+
+#VS
+.vs
+
+#CMake
+CMakeSettings.json

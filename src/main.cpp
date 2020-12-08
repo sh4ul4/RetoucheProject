@@ -17,17 +17,19 @@ int main(int argc, char* argv[]) {
 	Render render;
 	render.init(&window);
 
-	PanelManager pm;
-	pm.addPanel({ 0,0 }, { 100,100 });
-	pm.addPanel({ 300,10 }, { 100,150 });
-	pm.addPanel({ 340,60 }, { 100,150 });
+	TextureManager tm;
+	tm.addTexture("../input/rgba.png", window.getRenderer());
 
-	Texture t0("../input/cactus.bmp", window.getRenderer());
+	PanelManager pm;
+	pm.addPanel({ 0,0 }, { 400,400 });
+	pm.addPanel(300, 10, 600, 450, tm.at(0));
+	pm.addPanel({ 340,60 }, { 100,150 });
 
 	while (!inputEvent.keyboard.escape) {
 		render.render(&inputEvent,&window);
 		pm.checkForIntercation(inputEvent);
 		pm.render(window);
+		if(inputEvent.keyboard.f)pm.applyFilter(2, window);
 	}
 	window.Shutdown();
 	return 0;

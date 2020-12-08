@@ -368,5 +368,12 @@ int RandomInt(int min, int max) // returns a rondam value between given min and 
 	return (rand() % max) + min;
 }
 
+template <typename T>
+void moveItemToBack(std::vector<T>& v, size_t itemIndex)
+{
+	auto it = v.begin() + itemIndex;
+	std::rotate(it, it + 1, v.end());
+}
+
 
 //#include "Texture.h"

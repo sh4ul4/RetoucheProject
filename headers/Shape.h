@@ -10,9 +10,6 @@ class Shape {
 	bool contoured = true;
 	Color color = black;
 public:
-	Shape() {
-
-	}
 	const bool& fill()const { return filled; }
 	const bool& contour()const { return contoured; }
 	void fill(const bool& filled) { this->filled = filled; }

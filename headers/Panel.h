@@ -3,7 +3,9 @@
 #include <iostream>
 #include "Point.h"
 #include "Shape.h"
+#include "Texture.h"
 #include "Input.h"
+#include "Filter.h"
 #include <vector>
 
 class Panel {
@@ -33,8 +35,11 @@ class Panel {
 	bool isActive = false;
 	Button moveButton;
 	Button closeButton;
-	Texture texture;
+	Texture* texture = nullptr;
 	// style-sheet
+	Point2 texturePosition;
+	int textureW = 0;
+	int textureH = 0;
 	int buttonsize = 10;
 public:
 	Panel() = delete;
@@ -48,6 +53,15 @@ public:
 		moveButton = Button({ 0,0 }, 10, 10);
 		closeButton = Button({ size.x - 10,0 }, 10, 10);
 	}
+	Panel(const int& x, const int& y, const int& w, const int& h, Texture* texture) :position({ x,y }), size({ w,h }) {
+		if (size.x < 0 || size.y < 0) { std::cout << "Error: size can't be negative" << std::endl; exit(1); }
+		moveButton = Button({ 0,0 }, 10, 10);
+		closeButton = Button({ size.x - 10,0 }, 10, 10);
+		texturePosition = { 1,11 };
+		textureW = w - 1;
+		textureH = h - 11;
+		this->texture = texture;
+	}
 	const int& x()const { return position.x; }
 	const int& y()const { return position.y; }
 	const int& width()const { return size.x; }
@@ -55,13 +69,13 @@ public:
 	void moveBy(const int& x, const int& y) { position.x += x; position.y += y; }
 	void moveTo(const Point2& pos) { position = pos; }
 	void active(const bool& isActive) { this->isActive = isActive; }
-	void addShape(const Shape& shape) {
+	/*void addShape(const Shape& shape) {
 		shapes.push_back(shape);
-	}
+	}*/
 	void moveShapeToFront(const int& index) {
-		if (shapes.size() <= index) { std::cout << "Error: index out of bounds" << std::endl; exit(1); }
+		/*if (shapes.size() <= index) { std::cout << "Error: index out of bounds" << std::endl; exit(1); }
 		shapes.push_back(shapes.at(index));
-		shapes.erase(shapes.begin() + index);
+		shapes.erase(shapes.begin() + index);*/
 	}
 	void render(const Window& w)const {
 		for (Shape s : shapes)s.render(w);
@@ -87,6 +101,7 @@ public:
 			moveButton.render(position, dark_gray, w);
 			closeButton.render(position, dark_gray, w);
 		}
+		if(texture != nullptr) texture->renderTexture(w.getRenderer(), position + texturePosition, textureW, textureH, 0, 0);
 	}
 	bool inside(const Point2& p)const {
 		return p.x <= position.x + size.x && p.y <= position.y + size.y && p.x >= position.x && p.y >= position.y;
@@ -100,7 +115,7 @@ public:
 	Point2 getRelativePosition(const Point2& p)const {
 		return p - position;
 	}
-	float distanceToPanel(const Panel& p)const {
+	/*float distanceToPanel(const Panel& p)const {
 		const Point2 center(position + size / 2);
 		const Point2 pcenter(p.position + p.size / 2);
 		return Max(abs(center.x - pcenter.x) - (size.x + p.size.x) / 2, abs(center.y - pcenter.y) - (size.y + p.size.y) / 2);
@@ -109,6 +124,12 @@ public:
 		const Point2 center(position + size / 2);
 		const Point2 pcenter(p.position + p.size / 2);
 		return (abs(center.x - pcenter.x) - (size.x + p.size.x) / 2) < (abs(center.y - pcenter.y) - (size.y + p.size.y) / 2);
+	}*/
+	void applyBasicFilter(const Window& w) {
+		if (texture != nullptr) {
+			Filter filter;
+			filter.filter(*texture, w);
+		}
 	}
 };
 
@@ -124,19 +145,26 @@ public:
 	void addPanel(const int& x, const int& y, const int& w, const int& h) {
 		panels.emplace_back(x, y, w, h);
 	}
+	void addPanel(const int& x, const int& y, const int& w, const int& h, Texture* texture) {
+		panels.emplace_back(x, y, w, h, texture);
+	}
 	void checkForIntercation(const InputEvent& event) {
 		bool clickedInPanel = false;
 		for (int i = panels.size() - 1; i >= 0; i--) {
 			if (event.mouse.leftClick || movingPanel == true) {
 				if (panels[i].inside({ event.mouse.x,event.mouse.y }) || movingPanel == true) {
 					if (active == i) {
-						
+
 					}
 					else {
 						active = i;
 						panels[active].active(true);
+						moveItemToBack(panels, active);
+						/*
 						panels.push_back(panels.at(active));
-						panels.erase(panels.begin() + active);
+						std::iter_swap(panels.end(), panels.begin() + 1);
+
+						panels.erase(panels.begin() + active);*/
 					}
 					clickedInPanel = true;
 					break;
@@ -187,5 +215,9 @@ public:
 	}
 	void render(const Window& w)const {
 		for (Panel p : panels)p.render(w);
+	}
+	void applyFilter(int i, const Window& w) {
+		if (i < 0 || i >= panels.size())return;
+		panels[i].applyBasicFilter(w);
 	}
 };

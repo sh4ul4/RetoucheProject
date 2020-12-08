@@ -7,12 +7,10 @@
 
 class Texture {
 public:
-	SDL_Surface* surface;
-	SDL_Surface* shaderedSurface;
-	SDL_Texture* texture;
-	SDL_Texture* shaderedTexture;
+	SDL_Surface* surface = nullptr;
+	SDL_Texture* texture = nullptr;
 	Uint32 textureFormat = NULL;
-	SDL_PixelFormat* pixelFormat;
+	SDL_PixelFormat* pixelFormat = nullptr;
 private:
 	void* lockedPixels = nullptr;
 	int width = NULL;
@@ -26,8 +24,6 @@ public:
 		if (path == nullptr) { std::cout << "Wrong path name for object of class [Texture].\n"; exit(1); }
 		SDL_Surface* newsurface = nullptr;
 		surface = nullptr;
-		shaderedSurface = nullptr;
-		shaderedTexture = nullptr;
 		newsurface = IMG_Load(path);
 		if (newsurface == nullptr) { std::cout << "ERROR : [" << path << "] could not be loaded.\n"; exit(1); }
 		// convert the pixel-format of the surface to ARGB32/ARGB8888
@@ -45,24 +41,10 @@ public:
 	}
 	~Texture() {
 		SDL_DestroyTexture(texture);
-		SDL_DestroyTexture(shaderedTexture);
-		pixelFormat = NULL;
 		SDL_FreeSurface(surface);
-		SDL_FreeSurface(shaderedSurface);
 		SDL_FreeFormat(pixelFormat);
 		const char* error_f = SDL_GetError();
 		if (*error_f) { std::cout << "Error occured in ~Texture(): " << error_f << std::endl; }
-	}
-	void setShadered(SDL_Surface* newSurface) {
-		if (newSurface == NULL) {
-			std::cout << "Error occured in setShadered(): empty Surface as argument." << std::endl; exit(1);
-		}
-		SDL_FreeSurface(shaderedSurface);
-		shaderedSurface = nullptr;
-		//	shaderedSurface = SDL_CreateRGBSurface(0, newSurface->w, newSurface->h, 32, 0, 0, 0, 0);
-		//	SDL_BlitSurface(newSurface, NULL, shaderedSurface, NULL);
-		shaderedSurface = SDL_ConvertSurface(newSurface, newSurface->format, 0);
-		if (shaderedSurface == nullptr) { std::cout << "ERROR : surface conversion.\n"; exit(1); }
 	}
 	unsigned int getWidth() const { return width; }
 	unsigned int getHeight() const { return height; }
@@ -73,26 +55,7 @@ public:
 		texture = SDL_CreateTextureFromSurface(renderer, surface);
 		const char* error_f = SDL_GetError();
 		if (*error_f) { std::cout << "Error occured in updateTexture() : " << error_f << std::endl; }
-		if (texture == NULL) exit(1);
-	}
-	void updateShaderedTexture(SDL_Renderer* renderer) {
-		if (shaderedSurface == NULL) {
-			std::cout << "invalid [shaderedSurface]"<< std::endl;
-			exit(1);
-		}
-		if (shaderedTexture != nullptr) SDL_DestroyTexture(shaderedTexture);
-		shaderedTexture = SDL_CreateTextureFromSurface(renderer, shaderedSurface);
-		if (shaderedTexture == NULL) exit(1);
-	}
-	void updateShaderedTexture(SDL_Renderer* renderer, SDL_Surface* surface) {
-		//if (shaderedTexture != NULL)return;
-		if (surface == NULL) {
-			std::cout << "invalid [surface]" << std::endl;
-			exit(1);
-		}
-		if (shaderedTexture != nullptr) SDL_DestroyTexture(shaderedTexture);
-		shaderedTexture = SDL_CreateTextureFromSurface(renderer, surface);
-		if (shaderedTexture == NULL) exit(1);
+		if (texture == nullptr) exit(1);
 	}
 	void changeRGBA(const int& x, const int& y, const Uint8& r, const Uint8& g, const Uint8& b, const Uint8& a) {
 		if (x < 0 || y < 0 || x > width -1 || y > height -1) {
@@ -125,19 +88,6 @@ public:
 		default: SDL_RenderCopyEx(renderer, texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_NONE); break;
 		}
 	}
-	void renderShadered(SDL_Renderer* renderer, const Point2& topLeft, const Point2& lowRight, const int& flip, const double& angle) const 
-	{
-		const SDL_Rect dstrect_f{ topLeft.x,topLeft.y,lowRight.x - topLeft.x,lowRight.y - topLeft.y };
-
-		switch (flip) {
-		case 0: SDL_RenderCopyEx(renderer, shaderedTexture, NULL, &dstrect_f, angle, NULL, SDL_FLIP_NONE); break;
-		case 1: SDL_RenderCopyEx(renderer, shaderedTexture, NULL, &dstrect_f, angle, NULL, SDL_FLIP_HORIZONTAL); break;
-		case 2: SDL_RenderCopyEx(renderer, shaderedTexture, NULL, &dstrect_f, angle, NULL, SDL_FLIP_VERTICAL); break;
-		default: SDL_RenderCopyEx(renderer, shaderedTexture, NULL, &dstrect_f, angle, NULL, SDL_FLIP_NONE); break;
-		}
-		const char* error_f = SDL_GetError();
-		if (*error_f) { std::cout << "Error occured in renderShadered(): " << error_f << std::endl; }
-	}
 	void saveBMP(const char* path) const {
 		SDL_SaveBMP(surface, path);
 		const char* error_f = SDL_GetError();
@@ -158,6 +108,17 @@ public:
 	}
 	static inline Uint32 rgbaToUint32(const Uint8& r, const Uint8& g, const Uint8& b, const Uint8& a) {
 		return (r << 24) + (g << 16) + (b << 8) + (a);
+	}
+};
+
+class TextureManager {
+	std::vector<Texture>textures;
+public:
+	void addTexture(const char* path, SDL_Renderer* renderer) {
+		textures.emplace_back(path, renderer);
+	}
+	Texture* at(const int& i) {
+		return &textures[i];
 	}
 };
 
