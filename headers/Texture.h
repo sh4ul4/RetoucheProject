@@ -9,12 +9,10 @@ class Texture {
 public:
 	SDL_Surface* surface = nullptr;
 	SDL_Texture* texture = nullptr;
-	Uint32 textureFormat = NULL;
+	//Uint32 textureFormat = NULL;
 	SDL_PixelFormat* pixelFormat = nullptr;
 private:
 	void* lockedPixels = nullptr;
-	int width = NULL;
-	int height = NULL;
 	int access = NULL;
 	const char* path;
 public:
@@ -35,30 +33,33 @@ public:
 		if (surface == nullptr) { std::cout << "ERROR : surface conversion.\n"; exit(1); }
 		// create texture from surface
 		texture = SDL_CreateTextureFromSurface(renderer, surface);
-		SDL_QueryTexture(texture, &textureFormat, &access, &width, &height);
+		//SDL_QueryTexture(texture, &textureFormat, &access, &width, &height);
 		error_f = SDL_GetError();
 		if (*error_f) { std::cout << "Error occured in Texture(): " << error_f << std::endl; }
 	}
 	~Texture() {
-		SDL_DestroyTexture(texture);
-		SDL_FreeSurface(surface);
-		SDL_FreeFormat(pixelFormat);
-		const char* error_f = SDL_GetError();
-		if (*error_f) { std::cout << "Error occured in ~Texture(): " << error_f << std::endl; }
+		if(texture)SDL_DestroyTexture(texture);
+		if(surface)SDL_FreeSurface(surface);
+		if(pixelFormat)SDL_FreeFormat(pixelFormat);
+		//const char* error_f = SDL_GetError();
+		//if (*error_f) { std::cout << "Error occured in ~Texture(): " << error_f << std::endl; }
 	}
-	unsigned int getWidth() const { return width; }
-	unsigned int getHeight() const { return height; }
+	int getWidth() const { return surface->w; }
+	int getHeight() const { return surface->h; }
 	const char* getPath() const { return path; }
 	void updateTexture(SDL_Renderer* renderer) {
-		SDL_DestroyTexture(texture);
+		if (surface == nullptr) { std::cout << "ERROR : surface is nullptr\n"; exit(1); }
+		if (renderer == nullptr) { std::cout << "ERROR : renderer is nullptr\n"; exit(1); }
+		if(texture != nullptr) SDL_DestroyTexture(texture);
 		texture = nullptr;
 		texture = SDL_CreateTextureFromSurface(renderer, surface);
-		const char* error_f = SDL_GetError();
-		if (*error_f) { std::cout << "Error occured in updateTexture() : " << error_f << std::endl; }
-		if (texture == nullptr) exit(1);
+		if (texture == nullptr) {
+			std::cout << "Error occured in updateTexture() : " << SDL_GetError() << std::endl;
+			exit(1);
+		}
 	}
 	void changeRGBA(const int& x, const int& y, const Uint8& r, const Uint8& g, const Uint8& b, const Uint8& a) {
-		if (x < 0 || y < 0 || x > width -1 || y > height -1) {
+		if (x < 0 || y < 0 || x > getWidth() -1 || y > getHeight() -1) {
 			std::cout << "Given values out of range." << std::endl; exit(1);
 		}
 		Uint32* const pixels = (Uint32*)surface->pixels;
@@ -66,7 +67,7 @@ public:
 		pixels[(y * surface->w) + x] = pixel;
 	}
 	inline void getRGBA(const int& x, const int& y, Uint8* r, Uint8* g, Uint8* b, Uint8* a) const {
-		Uint32* pixels = (Uint32*)surface->pixels;
+		Uint32 const* pixels = (Uint32*)surface->pixels;
 		SDL_GetRGBA(pixels[(y * surface->w) + x], surface->format, r, g, b, a);
 	}
 	void renderTexture(SDL_Renderer* renderer, const Point2& topLeft, const unsigned int& width, const unsigned int& height, const int& flip, const double& angle) const
@@ -74,19 +75,23 @@ public:
 		SDL_Rect rect_f;
 		rect_f.x = 0;
 		rect_f.y = 0;
-		if (this->width == 0) { rect_f.w = width; }
-		else rect_f.w = this->width;
-		if (this->height == 0) { rect_f.h = height; }
-		else rect_f.h = this->height;
+		if (this->getWidth() == 0) { rect_f.w = width; }
+		else rect_f.w = this->getWidth();
+		if (this->getHeight() == 0) { rect_f.h = height; }
+		else rect_f.h = this->getHeight();
 
 		SDL_Rect dstrect_f{ topLeft.x,topLeft.y,(int)width,(int)height };
-
+		if (texture == nullptr) {
+			std::cout << "Error occured in renderTexture(): texture is nullptr" << std::endl;
+			return;
+		}
 		switch (flip) {
 		case 0: SDL_RenderCopyEx(renderer, texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_NONE); break;
 		case 1: SDL_RenderCopyEx(renderer, texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_HORIZONTAL); break;
 		case 2: SDL_RenderCopyEx(renderer, texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_VERTICAL); break;
 		default: SDL_RenderCopyEx(renderer, texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_NONE); break;
 		}
+		const char* error_f = SDL_GetError();
 	}
 	void saveBMP(const char* path) const {
 		SDL_SaveBMP(surface, path);

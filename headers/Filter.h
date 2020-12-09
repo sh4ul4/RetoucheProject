@@ -4,11 +4,11 @@
 
 class Filter {
 public:
-	void filter(Texture& texture, const Window& w, double value) {
+	void filter(Texture& texture, const Window& w, const double& value) {
 		Uint32* const pixels = (Uint32*)texture.surface->pixels;
 		for (int x = 0; x < texture.getHeight(); x++) {
 			for (int y = 0; y < texture.getWidth(); y++) {
-				// get pixel data
+				/*// get pixel data
 				Uint8 r, g, b, a;
 				SDL_GetRGBA(pixels[(y * texture.surface->w) + x], texture.surface->format, &r, &g, &b, &a);
 				int R = r;
@@ -31,7 +31,7 @@ public:
 				if (A < 0)A = 0;
 				// put pixel data
 				const Uint32 pixel = SDL_MapRGBA(texture.pixelFormat, R, G, B, A);
-				pixels[(y * texture.surface->w) + x] = pixel;
+				pixels[(y * texture.surface->w) + x] = pixel;*/
 			}
 		}
 		texture.updateTexture(w.getRenderer());
@@ -40,11 +40,13 @@ public:
 
 class ContrastFilter : public Filter {
 public:
-    void filter(Texture& texture, const Window& w, double value) {
+    void filter(Texture& texture, const Window& w, const double& value) {
 		const double contrast = pow((100 + value) / 100, 2);
-		Uint32* const pixels = (Uint32*)texture.surface->pixels;
-		for (int x = 0; x < texture.getHeight(); x++) {
-			for (int y = 0; y < texture.getWidth(); y++) {
+		if (texture.surface == nullptr) { std::cout << "Error in filter: surface is nullptr" << std::endl; }
+		SDL_LockSurface(texture.surface);
+		Uint32* pixels = (Uint32*)texture.surface->pixels;
+		for (int x = 0; x < texture.surface->h; x++) {
+			for (int y = 0; y < texture.surface->w; y++) {
 				// get pixel data
 				Uint8 r, g, b, a;
 				SDL_GetRGBA(pixels[(y * texture.surface->w) + x], texture.surface->format, &r, &g, &b, &a);
@@ -67,10 +69,15 @@ public:
 				if (A > 255)A = 255;
 				if (A < 0)A = 0;
 				// put pixel data
-				const Uint32 pixel = SDL_MapRGBA(texture.pixelFormat, R, G, B, A);
+				r = R;
+				g = G;
+				b = B;
+				a = A;
+				const Uint32 pixel = SDL_MapRGBA(texture.pixelFormat, r, g, b, a);
 				pixels[(y * texture.surface->w) + x] = pixel;
 			}
 		}
+		SDL_UnlockSurface(texture.surface);
 		texture.updateTexture(w.getRenderer());
     }
 };

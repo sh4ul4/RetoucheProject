@@ -22,6 +22,10 @@ public:
 		TTF_SizeText(font, text, &w, &h);
 		SDL_Surface* surface = TTF_RenderText_Solid(font, text, color.toSDL_Color());
 		texture = SDL_CreateTextureFromSurface(window.getRenderer(), surface);
+		SDL_FreeSurface(surface);
+	}
+	~TextBox() {
+		SDL_DestroyTexture(texture);
 	}
 	void update(const char* text, const char* fontStyle, const int& fontSize, const Color& color,
 		const Point2& topLeft, const int& flip, const double& angle, const Window& window) {
@@ -36,7 +40,11 @@ public:
 		}
 		TTF_SizeText(font, text, &w, &h);
 		SDL_Surface* surface = TTF_RenderText_Solid(font, text, color.toSDL_Color());
+		SDL_DestroyTexture(texture);
+		texture = nullptr;
 		texture = SDL_CreateTextureFromSurface(window.getRenderer(), surface);
+		SDL_FreeSurface(surface);
+		TTF_CloseFont(font);
 	}
 	void render(const Window& win) {
 		if (texture == nullptr)return;
@@ -74,7 +82,7 @@ public:
 	void update(InputEvent& event) {
 		const char c = event.GetChar();
 		if (c == NULL);
-		else if (c == -1) text.pop_back();
+		else if (c == -1 && text.empty() == false) text.pop_back();
 		else text += c;
 		updated = true;
 	}

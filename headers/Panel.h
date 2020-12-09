@@ -10,6 +10,7 @@
 #include <vector>
 
 class Panel {
+protected:
 	struct Button {
 		Button() {
 			position = size = { 0,0 };
@@ -40,17 +41,11 @@ class Panel {
 	// Panel variables
 	Point2 position;
 	Point2 size;
-	std::vector<Shape> shapes;
+	//std::vector<Shape> shapes;
 	bool isActive = false;
 	Button moveButton;
 	Button closeButton;
 	Button chooseButton;
-	Texture* texture = nullptr;
-	// style-sheet
-	Point2 texturePosition;
-	int textureW = 0;
-	int textureH = 0;
-	int buttonsize = 10;
 public:
 	Panel() = delete;
 	Panel(const Point2& position, const Point2& size) :position(position), size(size) {
@@ -64,16 +59,6 @@ public:
 		moveButton = Button({ 0,0 }, 10, 10);
 		closeButton = Button({ size.x - 10,0 }, 10, 10);
 		chooseButton = Button({ 16,0 }, 10, 10);
-	}
-	Panel(const int& x, const int& y, const int& w, const int& h, Texture* texture) :position({ x,y }), size({ w,h }) {
-		if (size.x < 0 || size.y < 0) { std::cout << "Error: size can't be negative" << std::endl; exit(1); }
-		moveButton = Button({ 0,0 }, 10, 10);
-		closeButton = Button({ size.x - 10,0 }, 10, 10);
-		chooseButton = Button({ 16,0 }, 10, 10);
-		texturePosition = { 1,11 };
-		textureW = w - 1;
-		textureH = h - 11;
-		this->texture = texture;
 	}
 	const int& x()const { return position.x; }
 	const int& y()const { return position.y; }
@@ -90,8 +75,8 @@ public:
 		shapes.push_back(shapes.at(index));
 		shapes.erase(shapes.begin() + index);*/
 	}
-	void render(const Window& w)const {
-		for (Shape s : shapes)s.render(w);
+	virtual void render(const Window& w)const {
+		//for (Shape s : shapes)s.render(w);
 		if (isActive) {
 			Draw::DrawFillRectangle(position, size, white, w.getRenderer());
 
@@ -102,7 +87,7 @@ public:
 
 			moveButton.render(position, black, w);
 			closeButton.render(position, black, w);
-			chooseButton.render(position, black, w, "f");
+			chooseButton.render(position, black, w);
 		}
 		else {
 			Draw::DrawFillRectangle(position, size, gray, w.getRenderer());
@@ -114,9 +99,18 @@ public:
 
 			moveButton.render(position, dark_gray, w);
 			closeButton.render(position, dark_gray, w);
-			chooseButton.render(position, dark_gray, w, "f");
+			chooseButton.render(position, dark_gray, w);
 		}
-		if(texture != nullptr) texture->renderTexture(w.getRenderer(), position + texturePosition, textureW, textureH, 0, 0);
+	}
+	virtual void checkForIntercations(const InputEvent& event, const Window& w) {
+		if (isActive) {
+			if (event.mouse.leftClick) {
+				
+			}
+		}
+		else {
+
+		}
 	}
 	bool inside(const Point2& p)const {
 		return p.x <= position.x + size.x && p.y <= position.y + size.y && p.x >= position.x && p.y >= position.y;
@@ -143,65 +137,108 @@ public:
 		const Point2 pcenter(p.position + p.size / 2);
 		return (abs(center.x - pcenter.x) - (size.x + p.size.x) / 2) < (abs(center.y - pcenter.y) - (size.y + p.size.y) / 2);
 	}*/
+};
+
+class TexturePanel : public Panel {
+	Texture texture;
+	Point2 texturePosition;
+	int textureW = 0;
+	int textureH = 0;
+	Button chooseFilterButton;
+public:
+	TexturePanel() = delete;
+	TexturePanel(const int& x, const int& y, const int& w, const int& h, const char* path, const Window& win) :Panel(x,y,w,h),texture(path,win.getRenderer()) {
+		texturePosition = { 1,11 };
+		textureW = this->size.x - 1;
+		textureH = this->size.y - 11;
+		chooseFilterButton = Button({ 32,0 }, 10, 10);
+	}
 	void applyBasicFilter(const Window& w) {
-		if (texture != nullptr) {
-			ContrastFilter filter;
-			filter.filter(*texture, w, 1);
+		ContrastFilter filter;
+		filter.filter(texture, w, 1);
+	}
+	void render(const Window& w) {
+		Panel::render(w);
+		texture.renderTexture(w.getRenderer(), position + texturePosition, textureW, textureH, 0, 0);
+		Color buttonCol;
+		if (isActive)buttonCol = black;
+		else buttonCol = dark_gray;
+		chooseFilterButton.render(position, buttonCol, w);
+	}
+	void savePNG() {
+		texture.savePNG("../input/result.png");
+	}
+	bool insideChooseFilterButton(const Point2& p)const {
+		return chooseFilterButton.inside(p - position);
+	}
+	void checkForIntercations(const InputEvent& event, const Window& w) {
+		Panel::checkForIntercations(event, w);
+		if (isActive) {
+			if (event.mouse.leftClick) {
+				if (insideChooseFilterButton({ event.mouse.x,event.mouse.y })) {
+					applyBasicFilter(w);
+				}
+			}
+			if (event.keyboard.s) {
+				savePNG();
+			}
+		}
+		else {
+
 		}
 	}
 };
 
+class BasicPanel : public Panel {
+
+};
+
 class PanelManager {
-	std::vector<Panel> panels;
+	std::vector<std::shared_ptr<Panel>> panels;
 	int active = -1; // index to currently active panel
 	Point2 movementStart;
 	bool movingPanel = false;
 public:
 	void addPanel(const Point2& position, const Point2& size) {
-		panels.emplace_back(position, size);
+		panels.emplace_back(new Panel(position, size));
 	}
 	void addPanel(const int& x, const int& y, const int& w, const int& h) {
-		panels.emplace_back(x, y, w, h);
+		panels.emplace_back(new Panel(x, y, w, h));
 	}
-	void addPanel(const int& x, const int& y, const int& w, const int& h, Texture* texture) {
-		panels.emplace_back(x, y, w, h, texture);
+	void addPanel(const int& x, const int& y, const int& w, const int& h, const char* path, const Window& win) {
+		panels.emplace_back(new TexturePanel(x, y, w, h, path, win));
 	}
-	void checkForIntercation(const InputEvent& event) {
+	void checkForInteraction(const InputEvent& event, const Window& w) {
 		bool clickedInPanel = false;
 		for (int i = panels.size() - 1; i >= 0; i--) {
 			if (event.mouse.leftClick || movingPanel == true) {
-				if (panels[i].inside({ event.mouse.x,event.mouse.y }) || movingPanel == true) {
+				if (panels[i]->inside({ event.mouse.x,event.mouse.y }) || movingPanel == true) {
 					if (active == i) {
 
 					}
 					else {
 						active = i;
-						panels[active].active(true);
+						panels[active]->active(true);
 						moveItemToBack(panels, active);
-						/*
-						panels.push_back(panels.at(active));
-						std::iter_swap(panels.end(), panels.begin() + 1);
-
-						panels.erase(panels.begin() + active);*/
 					}
 					clickedInPanel = true;
 					break;
 				}
-				else panels[i].active(false);
+				else panels[i]->active(false);
 			}
 		}
-		if (clickedInPanel == false && movingPanel == false) active = -1;
+		if (clickedInPanel == false && event.mouse.leftClick && movingPanel == false) active = -1;
 		for (int i = panels.size() - 1; i >= 0; i--) {
 			if (active == i) {
 				if (event.mouse.leftClick == false) {
 					movingPanel = false;
 				}
 				if (movingPanel) {
-					panels[active].moveTo(Point2(event.mouse.x, event.mouse.y) - movementStart);
+					panels[active]->moveTo(Point2(event.mouse.x, event.mouse.y) - movementStart);
 				}
-				else if (panels[i].insideMoveButton({ event.mouse.x,event.mouse.y })) {
+				else if (panels[i]->insideMoveButton({ event.mouse.x,event.mouse.y })) {
 					movingPanel = true;
-					movementStart = panels[active].getRelativePosition({ event.mouse.x,event.mouse.y });
+					movementStart = panels[active]->getRelativePosition({ event.mouse.x,event.mouse.y });
 				}
 			}
 			/*else if (movingPanel == true) {
@@ -225,20 +262,27 @@ public:
 			}*/
 		}
 		for (int i = panels.size() - 1; i >= 0; i--) {
-			if (event.mouse.leftClick && movingPanel == false && event.mouse.moving == false && panels[i].insideCloseButton({ event.mouse.x,event.mouse.y })) {
+			if (event.mouse.leftClick && movingPanel == false && event.mouse.moving == false && panels[i]->insideCloseButton({ event.mouse.x,event.mouse.y })) {
 				if (i == active)active = -1;
 				panels.erase(panels.begin() + i);
 			}
 		}
-		if (event.mouse.rightClick && panels[active].inside({ event.mouse.x,event.mouse.y })) {
-			// open context menu
+		for (int i = panels.size() - 1; i >= 0; i--) {
+			// call function for different derived classes
+			TexturePanel* tmp1 = dynamic_cast<TexturePanel*>(panels[i].get());
+			//otherPanel tmp2... = ...
+			//
+			if (tmp1 != nullptr)tmp1->checkForIntercations(event, w);
+			// if(tmp2 ...) ...
+			else { panels[i]->checkForIntercations(event, w); }
+
 		}
 	}
 	void render(const Window& w)const {
-		for (Panel p : panels)p.render(w);
-	}
-	void applyFilter(int i, const Window& w) {
-		if (i < 0 || i >= panels.size())return;
-		panels[i].applyBasicFilter(w);
+		for (int i = 0; i < panels.size(); i++) {
+			TexturePanel* tmp = dynamic_cast<TexturePanel*>(panels[i].get());
+			if (tmp != nullptr)tmp->render(w);
+			else panels[i]->render(w);
+		}
 	}
 };
