@@ -10,7 +10,7 @@ private:
 	int start_c = NULL;
 	int stop_c = NULL;
 public:
-	bool set(unsigned int end)
+	bool set(const unsigned int& end)
 	{
 		start_c = SDL_GetTicks(); // gets current time
 		if (stop_c == NULL)
@@ -55,7 +55,7 @@ public:
 			SDL_Delay(Uint32(nextTime - now)); // time to wait before rendering next frame
 		}
 	}
-	void stabilizeRendering(Window* window, double TickInterval = 0) // limit rendering
+	void stabilizeRendering(const Window& window, double TickInterval = 0) // limit rendering
 	{
 		// optimized formula with approximative constants
 		if (TickInterval == 60) { TickInterval = 17; }
@@ -63,7 +63,7 @@ public:
 		now = SDL_GetTicks(); // current time in SDL_Ticks
 		if (nextTime == 0) { nextTime = now + TickInterval; }
 		if (nextTime < now) {
-			window->RenderScreen();
+			window.RenderScreen();
 			nextTime = 0;
 		}
 	}

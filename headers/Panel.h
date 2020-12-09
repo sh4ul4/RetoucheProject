@@ -189,8 +189,10 @@ public:
 	}
 };
 
-class BasicPanel : public Panel {
+class SelectionPanel : public Panel {
+	SelectionPanel(const Point2& position, const Point2& size) :Panel(position, size) {
 
+	}
 };
 
 class PanelManager {
