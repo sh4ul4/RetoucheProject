@@ -25,15 +25,12 @@ int main(int argc, char* argv[]) {
 	pm.addPanel({ 0,0 }, { 400,400 });
 	pm.addPanel(300, 10, 600, 450, "../input/a.png", window);
 	pm.addPanel({ 340,60 }, { 100,150 });
-
-	InputBox ib({ 10,10 }, window);
+	pm.addPanel({ 100,100 }, { 100,100 }, window);
 
 	while (!inputEvent.keyboard.escape) {
 		render.render(&inputEvent,&window);
 		pm.checkForInteraction(inputEvent, window);
 		pm.render(window);
-		//ib.update(inputEvent);
-		//ib.render(window);
 	}
 	window.Shutdown();
 	return 0;

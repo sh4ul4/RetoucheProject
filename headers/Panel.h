@@ -8,36 +8,10 @@
 #include "Filter.h"
 #include "InputBox.h"
 #include <vector>
+#include "Button.h"
 
 class Panel {
 protected:
-	struct Button {
-		Button() {
-			position = size = { 0,0 };
-		}
-		Button(const Point2& pos, const int& w, const int& h) :position(pos), size({ w,h }) {
-			if (size.x < 0 || size.y < 0) { std::cout << "Error: size can't be negative" << std::endl; exit(1); }
-		}
-		Point2 position;
-		Point2 size;
-		bool inside(const Point2& p)const {
-			return p.x <= position.x + size.x && p.y <= position.y + size.y && p.x >= position.x && p.y >= position.y;
-		}
-		void render(const Point2& panelPosition, const Color& col, const Window& w)const {
-			Draw::DrawLine(panelPosition + position, panelPosition + Point2(position.x + size.x, position.y), col, w.getRenderer());
-			Draw::DrawLine(panelPosition + Point2(position.x + size.x, position.y), panelPosition + position + size, col, w.getRenderer());
-			Draw::DrawLine(panelPosition + position + size, panelPosition + Point2(position.x, position.y + size.y), col, w.getRenderer());
-			Draw::DrawLine(panelPosition + Point2(position.x, position.y + size.y), panelPosition + position, col, w.getRenderer());
-		}
-		void render(const Point2& panelPosition, const Color& col, const Window& w, const std::string& text)const {
-			Draw::RenderString(panelPosition.x + position.x + 2, panelPosition.y + position.y + 2, 6, text, col, w.getRenderer());
-
-			Draw::DrawLine(panelPosition + position, panelPosition + Point2(position.x + size.x, position.y), col, w.getRenderer());
-			Draw::DrawLine(panelPosition + Point2(position.x + size.x, position.y), panelPosition + position + size, col, w.getRenderer());
-			Draw::DrawLine(panelPosition + position + size, panelPosition + Point2(position.x, position.y + size.y), col, w.getRenderer());
-			Draw::DrawLine(panelPosition + Point2(position.x, position.y + size.y), panelPosition + position, col, w.getRenderer());
-		}
-	};
 	// Panel variables
 	Point2 position;
 	Point2 size;
@@ -171,7 +145,7 @@ public:
 	bool insideChooseFilterButton(const Point2& p)const {
 		return chooseFilterButton.inside(p - position);
 	}
-	void checkForIntercations(const InputEvent& event, const Window& w) {
+	void checkForIntercations(InputEvent& event, const Window& w) {
 		Panel::checkForIntercations(event, w);
 		if (isActive) {
 			if (event.mouse.leftClick) {
@@ -181,6 +155,7 @@ public:
 			}
 			if (event.keyboard.s) {
 				savePNG();
+				event.keyboard.s = false;
 			}
 		}
 		else {
@@ -190,8 +165,24 @@ public:
 };
 
 class SelectionPanel : public Panel {
-	SelectionPanel(const Point2& position, const Point2& size) :Panel(position, size) {
+	InputBox ib1;
+public:
+	SelectionPanel() = delete;
+	SelectionPanel(const Point2& position, const Point2& size, const Window& w) :Panel(position, size), ib1(Point2(0, 20), 100, w) {
+		//ib1 = InputBox(position + Point2(0, 20), 100, w);
+	}
+	void render(const Window& w) {
+		Panel::render(w);
+		ib1.render(position,w);
+	}
+	void checkForIntercations(InputEvent& event, const Window& w) {
+		Panel::checkForIntercations(event, w);
+		if (isActive) {
+			ib1.update(event, position);
+		}
+		else {
 
+		}
 	}
 };
 
@@ -210,7 +201,10 @@ public:
 	void addPanel(const int& x, const int& y, const int& w, const int& h, const char* path, const Window& win) {
 		panels.emplace_back(new TexturePanel(x, y, w, h, path, win));
 	}
-	void checkForInteraction(const InputEvent& event, const Window& w) {
+	void addPanel(const Point2& position, const Point2& size, const Window& w) {
+		panels.emplace_back(new SelectionPanel(position, size, w));
+	}
+	void checkForInteraction(InputEvent& event, const Window& w) {
 		bool clickedInPanel = false;
 		for (int i = panels.size() - 1; i >= 0; i--) {
 			if (event.mouse.leftClick || movingPanel == true) {
@@ -264,26 +258,31 @@ public:
 			}*/
 		}
 		for (int i = panels.size() - 1; i >= 0; i--) {
-			if (event.mouse.leftClick && movingPanel == false && event.mouse.moving == false && panels[i]->insideCloseButton({ event.mouse.x,event.mouse.y })) {
-				if (i == active)active = -1;
-				panels.erase(panels.begin() + i);
-			}
-		}
-		for (int i = panels.size() - 1; i >= 0; i--) {
 			// call function for different derived classes
 			TexturePanel* tmp1 = dynamic_cast<TexturePanel*>(panels[i].get());
+			SelectionPanel* tmp2 = dynamic_cast<SelectionPanel*>(panels[i].get());
 			//otherPanel tmp2... = ...
 			//
 			if (tmp1 != nullptr)tmp1->checkForIntercations(event, w);
+			else if (tmp2 != nullptr)tmp2->checkForIntercations(event, w);
 			// if(tmp2 ...) ...
 			else { panels[i]->checkForIntercations(event, w); }
 
 		}
+		for (int i = panels.size() - 1; i >= 0; i--) {
+			if (event.mouse.leftClick && movingPanel == false && event.mouse.moving == false && panels[i]->insideCloseButton({ event.mouse.x,event.mouse.y })) {
+				if (i == active)active = -1;
+				panels.erase(panels.begin() + i);
+				event.mouse.leftClick = false;
+			}
+		}
 	}
 	void render(const Window& w)const {
 		for (int i = 0; i < panels.size(); i++) {
-			TexturePanel* tmp = dynamic_cast<TexturePanel*>(panels[i].get());
-			if (tmp != nullptr)tmp->render(w);
+			TexturePanel* tmp1 = dynamic_cast<TexturePanel*>(panels[i].get());
+			SelectionPanel* tmp2 = dynamic_cast<SelectionPanel*>(panels[i].get());
+			if (tmp1 != nullptr)tmp1->render(w);
+			else if (tmp2 != nullptr)tmp2->render(w);
 			else panels[i]->render(w);
 		}
 	}

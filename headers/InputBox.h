@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "Texture.h"
 #include "Window.h"
+#include "Button.h"
 
 class TextBox {
 	SDL_Texture* texture = nullptr;
@@ -46,10 +47,10 @@ public:
 		SDL_FreeSurface(surface);
 		TTF_CloseFont(font);
 	}
-	void render(const Window& win) {
+	void render(const Point2& PanelPosition, const Window& win) {
 		if (texture == nullptr)return;
 		SDL_Rect rect_f{ 0,0,w,h };
-		SDL_Rect dstrect_f{ position.x,position.y,w,h };
+		SDL_Rect dstrect_f{ position.x + PanelPosition.x,position.y+PanelPosition.y,w,h };
 		switch (flip) {
 		case 0: SDL_RenderCopyEx(win.getRenderer(), texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_NONE); break;
 		case 1: SDL_RenderCopyEx(win.getRenderer(), texture, &rect_f, &dstrect_f, angle, NULL, SDL_FLIP_HORIZONTAL); break;
@@ -64,13 +65,20 @@ class InputBox {
 	TextBox tb;
 	Point2 position;
 	bool updated = false;
+	int maxWidth;
+	// Button
+	Button validationButton;
+	std::string validatedText;
 public:
-	InputBox(const Point2& position, const Window& w) :position(position) {
+	InputBox() = delete;
+	InputBox(const Point2& position, const int& maxWidth, const Window& w) :position(position), maxWidth(maxWidth) {
 		tb = TextBox(text.c_str(), "../fonts/font.ttf", 12, black, position, 0, 0, w);
+		validationButton = Button(Point2(maxWidth - 11, 0), 10, 10); // button-position is relative
 	}
-	void render(const Window& w) {
-		if (updated)tb.update(text.c_str(), "../fonts/font.ttf", 12, black, position, 0, 0, w);
-		tb.render(w);
+	void render(const Point2& Panelposition, const Window& w) {
+		if (updated)tb.update(text.c_str(), "../fonts/font.ttf", 12, black, position + Panelposition, 0, 0, w);
+		tb.render(Panelposition, w);
+		validationButton.render(position + Panelposition, black,w);
 		updated = false;
 	}
 	void clear() {
@@ -79,11 +87,19 @@ public:
 	std::string getText() {
 		return text;
 	}
-	void update(InputEvent& event) {
+	std::string getValidatedText() {
+		return validatedText;
+	}
+	void update(InputEvent& event,const Point2& panelPosition) {
 		const char c = event.GetChar();
 		if (c == NULL);
 		else if (c == -1 && text.empty() == false) text.pop_back();
 		else text += c;
 		updated = true;
+		// validation part
+		if (event.mouse.leftClick && validationButton.inside(Point2(event.mouse.x, event.mouse.y) - position - panelPosition)) {
+			validatedText = text;
+			event.mouse.leftClick = false;
+		}
 	}
 };
